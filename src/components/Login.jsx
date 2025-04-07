@@ -2,20 +2,18 @@ import React, { useRef, useState } from 'react'
 import Header from './Header'
 import { validateForm } from '../utils/utils';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from '../utils/firebase';
+import { auth } from '../utils/firebase';    
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
+  const navigate = useNavigate(); 
   const [isSinInForm, setIsSinInForm] = useState(true);
   const [errors, setErrors] = useState([]);
 
   const defaultFormVals = { email: "", name: "", password: "" };
   const formValues = useRef(defaultFormVals)
   const toggleLogin = () => {
-    console.log("@@## formValues", formValues)
-    formValues.current.reset();
     setIsSinInForm(!isSinInForm)
-    formValues.current = defaultFormVals;
-    setErrors([])
   }
 
   const handleChange = (e) => {
@@ -23,7 +21,6 @@ const Login = () => {
   };
 
   const handleSubmit = (e) => {
-    console.log("@@## submitting")
     const failedValidations = validateForm(formValues.current)
     if (failedValidations?.length) {
       setErrors(failedValidations)
@@ -38,6 +35,14 @@ const Login = () => {
           // Signed in 
           const user = userCredential.user;
           console.log("USER Singned UP", user)
+          navigate("/browse");
+          updateProfile(auth.currentUser, {
+            displayName: formValues?.current?.name, photoURL: ""
+          }).then(() => {
+            // Profile updated!
+            // ...
+          }).catch((error) => {
+          });
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -51,11 +56,13 @@ const Login = () => {
         .then((userCredential) => { 
           const user = userCredential.user;
           console.log("USER LOGGED IN:", user)
+          navigate("/browse");
         })
         .catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
           console.log("ERROR SING IN:", errorCode, error.message)
+          setErrors(prev => [...prev, "API"])
         });
 
     }
@@ -74,7 +81,7 @@ const Login = () => {
        { console.log("EVENT in form",e)
         e.preventDefault()}
       } 
-      ref={formValues}
+      // ref={formValues}
       className='absolute p-12 w-3/12 my-36 mx-auto right-0 left-0 text-white bg-black/70'
       >
         <h1 className='font-bold text-3xl py-4'>{`Sign ${isSinInForm ? "In" : "Up"}`}</h1>
